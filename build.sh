@@ -113,6 +113,9 @@ clean_output
 for plugin in "${plugins[@]}"; do
     plugin_output="$output/${plugin##*/}"
     build_plugin "$plugin" "$plugin_output"
+	 if (( $? != 0 )); then
+	     exit 1
+	 fi
     if [ "$generate_zip" = "true" ]; then
         generate_zip "$plugin_output" "$plugin_output.zip"
     fi

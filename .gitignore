@@ -5,7 +5,7 @@
 # Build Artifacts
 **/obj
 **/bin
-/Build
+/build
 
 # User Preferences
 *.user

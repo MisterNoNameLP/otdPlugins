@@ -1,70 +1,105 @@
 ﻿using System;
+using System.Threading;
 using System.Numerics;
+using System.Diagnostics;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Attributes;
 using OpenTabletDriver.Plugin.Output;
 using OpenTabletDriver.Plugin.Tablet;
 
-namespace VoiDPlugins.Filter
-{
-    [PluginName("Precision Control")]
-    public class PrecisionControlBinding : IStateBinding
-    {
-        internal static Vector2 StartingPoint;
-        internal static bool IsActive { set; get; }
-        internal static bool SetPosition { set; get; }
+namespace VoiDPlugins.Filter {
+	[PluginName("TestPlugin24")]
+	public class TestPlugin : IPositionedPipelineElement<IDeviceReport> {
+		public event Action<IDeviceReport>? Emit;
 
-        public static string[] ValidModes => new[] { "Toggle", "Hold" };
+		[SliderProperty("Scale", 0.0f, 10f, 1f), DefaultPropertyValue(1f)]
+		public float Scale { get; set; }
+		[SliderProperty("Test2", 0.0f, 10f, 1f), DefaultPropertyValue(1f)]
+		public float Test2 { get; set; }
 
-        [Property("Mode"), PropertyValidated(nameof(ValidModes))]
-        public string? Mode { set; get; }
+		public PipelinePosition Position => PipelinePosition.PostTransform;
 
-        public void Press(TabletReference tablet, IDeviceReport report)
-        {
-            if (Mode == "Toggle")
-                IsActive = !IsActive;
-            else if (Mode == "Hold")
-                IsActive = true;
+		public float accel = 1f;
+		
+		public Stopwatch stopwatch = new Stopwatch();
 
-            SetPosition = true;
-        }
+		public int count = 0;
+		public int MAX_COUNT = 100;
 
-        public void Release(TabletReference tablet, IDeviceReport report)
-        {
-            if (Mode == "Hold")
-                IsActive = false;
-        }
-    }
+		public Vector2 calcTestAccel(Vector2 delta) {
 
-    [PluginName("Precision Control")]
-    public class PrecisionControl : IPositionedPipelineElement<IDeviceReport>
-    {
-        public event Action<IDeviceReport>? Emit;
+			
+			return delta;
+		}
 
-        [SliderProperty("Precision Multiplier", 0.0f, 10f, 0.3f), DefaultPropertyValue(0.3f)]
-        public float Scale { get; set; }
+		public void Consume(IDeviceReport value){
+			if (value is ITabletReport report){
+				//Thread.Sleep(300);
+				stopwatch.Stop();
+				float deltaTime = (float) stopwatch.Elapsed.TotalMilliseconds;
 
-        public PipelinePosition Position => PipelinePosition.PostTransform;
+				if (report.Position != new Vector2(0f, 0f)){
+					Console.WriteLine("=== Before ===");
+					Console.WriteLine(deltaTime);
+					//Console.WriteLine("value: " + value);
+					//Console.WriteLine("report: " + report);
+					Console.WriteLine("report.Position: " + report.Position);
+				}
 
-        public void Consume(IDeviceReport value)
-        {
-            if (value is ITabletReport report)
-            {
-                if (PrecisionControlBinding.SetPosition)
-                {
-                    PrecisionControlBinding.StartingPoint = report.Position;
-                    PrecisionControlBinding.SetPosition = false;
-                }
 
-                if (PrecisionControlBinding.IsActive)
-                {
-                    var delta = (report.Position - PrecisionControlBinding.StartingPoint) * Scale;
-                    report.Position = PrecisionControlBinding.StartingPoint + delta;
-                }
-                value = report;
-            }
+				if (count < MAX_COUNT) {
+					report.Position = new Vector2(-1, 0);
+				} else {
+					report.Position = new Vector2(0, 0);
+				}
+				count ++;
+				Console.WriteLine(count);
 
-            Emit?.Invoke(value);
-        }
-    }
+
+				var steps = 10;
+				for (float i = 0; i <= steps; i++) {
+					var testDelta = calcTestAccel(new Vector2(i / steps, 0f));
+
+					Console.WriteLine(testDelta.X);
+
+					/*
+					var maxDelta = 1;
+					var maxChars = 10;
+					var visualisationString = "";
+					for ( i2 = 0; i <= maxDelta; i++ ) {
+						visualisationString = visualisationString + "#"
+					}
+					*/
+				}
+
+
+				var delta = report.Position * .5f;
+				var tt = delta * accel;
+
+				//delta = delta * Vector2.Abs(( delta * accel ));
+
+
+				//var delta = report.Position * Scale;
+				
+				//report.Position = new System.Numerics.Vector2(1f, 0f);
+
+
+
+				if (report.Position != new Vector2(0f, 0f)){
+					Console.WriteLine("=== After ===");
+					Console.WriteLine("delta: " + delta);
+				}
+
+				report.Position = delta;
+				value = report;
+				stopwatch.Reset();
+				stopwatch.Start();
+			}
+			
+
+
+			Emit?.Invoke(value);
+			//Console.WriteLine("Scale: " + Scale + ", Test2: " + Test2);
+		}
+	}
 }
