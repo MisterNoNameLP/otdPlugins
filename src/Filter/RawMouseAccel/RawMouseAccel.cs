@@ -7,9 +7,9 @@ using OpenTabletDriver.Plugin.Attributes;
 using OpenTabletDriver.Plugin.Output;
 using OpenTabletDriver.Plugin.Tablet;
 
-namespace TestPlugin.Filter {
-	[PluginName("TestPlugin")]
-	public class TestPluginBindings : IStateBinding{
+namespace RawMouseAccel.Filter {
+	[PluginName("RawMouseAccel")]
+	public class RawMouseAccelBindings : IStateBinding{
 		internal static bool bypass { set; get; }
 
 		public static string[] ValidModes => new[] { "Toggle", "Hold" };
@@ -30,8 +30,8 @@ namespace TestPlugin.Filter {
 		}
 	}
 
-	[PluginName("TestPlugin")]
-	public class TestPlugin : IPositionedPipelineElement<IDeviceReport> {
+	[PluginName("RawMouseAccel")]
+	public class RawMouseAccel : IPositionedPipelineElement<IDeviceReport> {
 		public event Action<IDeviceReport>? Emit;
 		public PipelinePosition Position => PipelinePosition.PostTransform;
 
@@ -111,7 +111,7 @@ namespace TestPlugin.Filter {
 					Console.WriteLine(newPosition);
 				}
 
-				if (!TestPluginBindings.bypass){
+				if (!RawMouseAccelBindings.bypass){
 					reportPosition = newPosition * Scale;
 					report.Position = reportPosition;
 				}

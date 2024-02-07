@@ -6,7 +6,7 @@ framework="net6.0"
 output="./build"
 declare -a extra_options
 dry_run="false"
-plugins=("Filter/TestPlugin")
+plugins=("Filter/TestPlugin" "Filter/RawMouseAccel")
 generate_zip="false"
 generate_sha256="true"
 clean_builds="true"
